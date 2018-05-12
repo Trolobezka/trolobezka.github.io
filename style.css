@@ -1,0 +1,100 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #e2e2e2;
+  font-family: sans-serif;
+}
+
+.page {
+  width: 60%;
+  margin: 35px auto;
+}
+.page .top {
+  background-color: #d1d1d1;
+  box-shadow: 0 0 10px black;
+}
+.page .top .name {
+  text-align: center;
+  letter-spacing: 5px;
+  font-size: 20px;
+  line-height: 60px;
+  text-transform: uppercase;
+}
+.page .top .name h1 {
+  margin: 0 auto;
+}
+.page .top .nav {
+
+}
+.page .top .nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+.page .top .nav ul li {
+  width:  25%;
+}
+.page .top .nav ul li a {
+  text-decoration: none;
+  display: block;
+  font-weight: bold;
+  text-transform: uppercase;
+  height: 30px;
+  line-height: 30px;
+  text-align: center;
+  transition: 0.5s;
+  color: black;
+}
+.page .top .nav ul li a:hover {
+  background-color: black;
+  color: white;
+}
+
+.main {
+  width: 95%;
+  margin: 0 auto;
+  background-color: #d1d1d1;
+  box-shadow: 0 0 10px black;
+  padding-top: 40px;
+  position: relative;
+  z-index: -1;
+  top: -10px;
+}
+.main .text {
+  height: 100%;
+  margin: 0 10px 10px 10px;
+}
+.main .text h2 {
+  margin: 0;
+}
+
+@media only screen and (max-width: 1000px) {
+  .page {
+    width: 90%;
+  }
+}
+
+@media only screen and (max-width: 650px) {
+
+  .page .top .nav ul {
+    display: block;
+  }
+  .page .top .nav ul li {
+    margin: 0 auto;
+    width: 100%;
+    display: block;
+  }
+  .page .top .nav ul li a {
+    text-decoration: none;
+    display: block;
+    width: 100%;
+    font-weight: bold;
+    text-transform: uppercase;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    transition: 0.5s;
+    color: black;
+  }
+}
