@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcard App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+
+        .card {
+            width: min(300px, 90%);
+            max-width: 300px;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            text-align: center;
+            padding: 20px;
+            transition: transform 0.3s ease-in-out;
+            font-size: 18px;
+        }
+
+        .card:hover {
+            transform: scale(1.025);
+        }
+
+        .counter {
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .next-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .next-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="counter" id="counter"></div>
+    <div class="card" onclick="flipCard()">
+        <div id="front"></div>
+        <div id="back" style="display: none; margin-top: 10px; color: #007bff;"></div>
+    </div>
+    <button class="next-button" onclick="nextCard()">Next Card</button>
+    <script>
+        // CSV content as a string (copy-paste directly here)
+        const csvData = `,
+das Dach (Auto),střecha (auto)
+die Windschutzscheibe (Auto),čelní sklo (auto)
+der Rückspiegel (Auto),zpětné zrcátko (auto)
+die Motorhaube (Auto),kapota (auto)
+der Scheinwerfer (Auto),světlomet (auto)
+das KZ-Kennzeichen (Auto),RZ / SPZ (auto)
+die Stoßstange (Auto),nárazník (auto)
+der Blinker (Auto),ukazatel směru (auto)
+der Türgrif (Auto),klika dveří (auto)
+die Wagentür (Auto),dveře (auto)
+das Rad (Auto),kolo (auto)
+das Rückfenster (Auto),zadní okno (auto)
+der Spoiler / der Ablenkblech (Auto),spoiler (auto)
+das Rücklicht (Auto),zadní světlo (auto)
+der Kofferraum (Auto),zavazadlový prostor / kufr (auto)
+das Standlicht (Auto),obrysové / parkovací světlo (auto)
+das Bremslicht (Auto),brzdové světlo (auto)
+der Auspuff (Auto),výfuk (auto)
+der Reifen (Auto),pneumatika (auto)
+das Hinterrad (Auto),zadní kolo (auto)
+der Kottflügel (Auto),blatník (auto)
+das Vorderrad (Auto),přední kolo (auto)
+der Airbag (Auto),bezpečnostní vak / airbag (auto)
+das Lenkrad (Auto),volant (auto)
+der Tourenzähler (Auto),otáčkoměr (auto)
+der Fahrersitz (Auto),sedadlo řidiče (auto)
+das Pedal (Auto),pedál (auto)
+die Handbremse (Auto),ruční brzda (auto)
+der Schalthebel (Auto),řadicí páka (auto)
+der Vordersitz (Auto),přední sedadlo (auto)
+das Armaturenbrett (Auto),přístrojová deska (auto)
+der Scheibenwischer (Auto),stěrač (auto)
+,
+der Bildschirm (Computer),obrazovka (počítač)
+der Flachbildschirm (Computer),plochá obrazovka (počítač)
+der Netzschalter (Computer),síťový vypínač (počítač)
+das CD-ROM-Laufwerk (Computer),jednotka CD ROM (počítač)
+das Gehäuse (Computer),kryt (počítač)
+die Tastatur (Computer),klávesnice (počítač)
+die Festplatte (Computer),pevný disk (počítač)
+die Eingabetaste (Computer),enter (počítač)
+die Leertaste (Computer),mezerník (počítač)
+die Cursortaste (Computer),kurzorové tlačítko / klávesa (počítač)
+die Funktionstaste (Computer),funkční klávesa (počítač)
+die Maus (Computer),myš (počítač)
+der / das Modem (Computer),modem (počítač)
+das Mikrophon (Computer),mikrofon (počítač)
+der Scanner (Computer),skener (počítač)
+der Drucker (Computer),tiskárna (počítač)
+der Laserdrucker (Computer),laserová tiskárna (počítač)
+der Nadeldrucker (Computer),jehličková tiskárna (počítač)
+der Tintenstrahldrucker (Computer),inkoustová tiskárna (počítač)
+der Brenner (Computer),vypalovačka (počítač)
+die Soundkarte (Computer),zvuková karta (počítač)
+der Speicher (Computer),paměť (počítač)
+,
+Computer ein/schalten,zapnout počítač (počítač)
+Computer aus/schalten,vypnout počítač (počítač)
+Texte ein/scannen,naskenovat texty (počítač)
+Eingabetaste betätigen,stisknout enter (počítač)
+Daten verarbeiten,zpracovat data (počítač)
+Daten übertragen,přenést data (počítač)
+mit Daten arbeiten,pracovat s daty (počítač)
+Daten laden,vkládat data (počítač)
+Daten speichern,uložit data  (počítač)
+Daten löschen,vymazat data (počítač)
+Texte aus/drucken,vytisknout texty (počítač)
+CD-ROM ein/legen,vložit CD-ROM (počítač)
+Videogerät an/schließen,připojit video (počítač)
+,
+der Kreis (Geometrie),kruh (geometrie)
+die Kreislinie (Geometrie),kružnice (geometrie)
+der Halbkreis (Geometrie),polokruh (geometrie)
+das Quadrat (Geometrie),čtverec (geometrie)
+das Rechteck (Geometrie),obdélník (geometrie)
+das Dreieck (Geometrie),trojúhelník (geometrie)
+das gleichschenkelige Dreieck (Geometrie),rovnoramenný trojúhelník (geometrie)
+das gleichseitige Dreieck (Geometrie),rovnostranný trojúhelník (geometrie)
+das Viereck (Geometrie),čtyřúhelník (geometrie)
+das Fünfeck (Geometrie),pětiúhelník (geometrie)
+das Trapez (Geometrie),lichoběžník (geometrie)
+der Würfel / der Kubus (Geometrie),krychle (geometrie)
+die Kugel (Geometrie),koule (geometrie)
+der Kegel (Geometrie),kužel (geometrie)
+die Pyramide (Geometrie),jehlan (geometrie)
+der Quader (Geometrie),kvádr (geometrie)
+der Zylinder (Geometrie),válec (geometrie)
+die Linie (Geometrie),čára (geometrie)
+die gerade Linie (Geometrie),rovná čára (geometrie)
+die Kurve / die kurvenförmige Linie (Geometrie),křivka (geometrie)
+die Waagrechte (Geometrie),vodorovná čára (geometrie)
+die Vertikale (Geometrie),svislá čára (geometrie)
+die Volllinie (Geometrie),plná čára (geometrie)
+die Strichlinie (Geometrie),čárkovaná čára (geometrie)
+die Strichpunktlinie (Geometrie),čerchovaná čára (geometrie)
+die Freihandlinie (Geometrie),čára kreslená rukou (geometrie)
+die Gerade (Geometrie),přímka (geometrie)
+die schneidende Gerade (Geometrie),různoběžka (geometrie)
+die Parallele (Geometrie),rovnoběžka (geometrie)
+die Halbgerade (Geometrie),polopřímka (geometrie)
+der Strahl (Geometrie),polopřímka (geometrie)
+die Strecke (Geometrie),úsečka (geometrie)
+der Winkel (Geometrie),úhel (geometrie)
+der gestreckte Winkel (Geometrie),přímý úhel (geometrie)
+der überstumpfe Winkel (Geometrie),vyšší než přímý úhel (geometrie)
+der Vollwinkel (Geometrie),plný úhel (geometrie)
+der spitze Winkel (Geometrie),ostrý úhel (geometrie)
+der rechte Winkel (Geometrie),pravý úhel (geometrie)
+der stumpfe Winkel (Geometrie),tupý úhel (geometrie)
+die Diagonale (Geometrie),úhlopříčka (geometrie)
+die Kathete (Geometrie),odvěsna (geometrie)
+die Hypotenuse (Geometrie),přepona (geometrie)
+der Scheitel (Geometrie),vrchol úhlu (geometrie)
+der Schenkel (Geometrie),rameno úhlu (geometrie)
+der Schnittpunkt (Geometrie),průsečík (geometrie)
+der Durchlaufsinn (Geometrie),směr průběhu (geometrie)
+die Normale (Geometrie),kolmice (geometrie)
+der Radius (Geometrie),rádius (geometrie)
+der Halbmesser (Geometrie),poloměr (geometrie)
+der Durchmesser (Geometrie),průměr (geometrie)
+die Figur (Geometrie),obrazec (geometrie)
+die ebene Figur (Geometrie),plošný obrazec (geometrie)
+der Eckpunkt (Geometrie),vrchol (geometrie)
+der Umfang (Geometrie),obvod (geometrie)
+der Flächeninhalt (Geometrie),plocha (geometrie)
+das Unendliche (Geometrie),nekonečno (geometrie)
+der Körper (Geometrie),těleso (geometrie)
+der schiefe Körper (Geometrie),kosé těleso (geometrie)
+der gerade Körper (Geometrie),kolmé těleso (geometrie)
+der stumpfe Körper (Geometrie),komolé těleso (geometrie)
+der spitze Körper (Geometrie),ostré těleso (geometrie)
+das Prisma (Geometrie),hranol (geometrie)
+der Pyramidenstumpf (Geometrie),komolý jehlan (geometrie)
+der Kegelstumpf (Geometrie),komolý kužel (geometrie)
+das Polyeder (Geometrie),mnohostěn (geometrie)
+die Ebene (Geometrie),rovina (geometrie)
+die Kante (Geometrie),hrana (geometrie)
+die Ecke (Geometrie),vrchol mnohoúhelníku (geometrie)
+die Oberfläche (Geometrie),povrch (geometrie)
+die Mantelfläche (Geometrie),plášť tělesa (geometrie)
+die Deckfläche (Geometrie),horní základna (geometrie)
+die Grundfläche (Geometrie),spodní základna / podstava (geometrie)
+die Seitenfläche (Geometrie),stěna tělesa (geometrie)
+die Spitze (Geometrie),vrchol kužele (geometrie)
+der Mittelpunkt (Geometrie),střed (geometrie)
+der Fußpunkt (Geometrie),pata (geometrie)
+das Volumen (Geometrie),objem (geometrie)
+orthogonal (Geometrie),kolmý / pravoúhlý (geometrie)
+senkrecht (Geometrie),svislý (geometrie)
+rechtwinklig (Geometrie),pravoúhlý (geometrie)
+eben (Geometrie),rovinný / rovný (geometrie)
+parallel (Geometrie),rovnoběžný (geometrie)
+windschief (Geometrie),mimoběžný (geometrie)
+gegenüberliegend (Geometrie),protilehlý (geometrie)
+anliegend (Geometrie),přilehlý (geometrie)
+aufeinander normal (Geometrie),navzájem kolmý (geometrie)
+kongruent (Geometrie),shodný (geometrie)
+sich schneiden (Geometrie),protínat se (geometrie)
+verlaufen (Geometrie),probíhat / vést (geometrie)
+zusammen/laufen (Geometrie),sbíhat se (geometrie)
+sich berühren (Geometrie),dotýkat se (geometrie)
+ein/schließen (Geometrie),svírat (geometrie)
+dar/stellen (Geometrie),zobrazovat / zobrazit (geometrie)
+,
+a plus b ist gleich c (Math),a + b = c (matematika)
+a minus b ist gleich c (Math),a - b = c (matematika)
+a mal b ist gleich c (Math),a . b = c (matematika)
+a durch b ist gleich c (Math),a : b = c (matematika)
+a zu b ist gleich c zu d (Math),a : b = c : d (matematika)
+a hoch n / potenzieren (Math),a^n (matematika)
+a hoch zwei / a zum Quadrat (Math),a^2 (matematika)
+a hoch 3 (Math),a^3 (matematika)
+"a mal b in Klammer hoch n / Klammer auf, a mal b, Klammer zu, hoch n (Math)",(ab)^n (matematika)
+"a plus b plus c, das Ganze hoch n / Klammer auf, a plus b plus c, Klammer zu, hoch n (Math)",(a + b + c)^n (matematika)
+einhalb / eine Hälfte (Math),½ (matematika)
+ein Drittel (Math),⅓ (matematika)
+ein Viertel (Math),¼ (matematika)
+die zweite Wurzel aus x / Quadratwurzel aus x / Wurzel ziehen aus (Math),√x (matematika)
+die dritte Wurzel aus x / Kubikwurzel aus x (Math),3√x (matematika)
+die vierte Wurzel aus x (Math),4√x (matematika)
+"die Summe über a, für i ist gleich eins bis n (Math)",Σ_(i = 1)^(n) a (matematika)
+Logarithmus x (Math),log x (matematika)
+"a plus b, das Ganze durch zwei / a plus b Bruchstrich zwei (Math)",(a + b) / 2 (matematika)
+"a plus b, das Ganze durch x / a plus b Bruchstrich x (Math)",(a + b) / x (matematika)
+ist gleich (Math),= (matematika)
+ist ungleich / nicht gleich (Math),≠ (matematika)
+ist ungefähr gleich (Math),≈ (matematika)
+ist kleiner als (Math),< (matematika)
+ist größer als (Math),> (matematika)
+ist kleiner oder gleich (Math),≤ (matematika)
+ist größer oder gleich (Math),≥ (matematika)
+der Bruch (Math),zlomek (matematika)
+der Zähler (Math),čitatel ve zlomku (matematika)
+der Nenner (Math),jmenovatel ve zlomku (matematika)
+der Bruchstrich (Math),zlomková čára (matematika)
+das negative Vorzeichen (Math),záporné znaménko (matematika)
+das positive Vorzeichen (Math),kladné znaménko (matematika)
+die Dezimalzahl (Math),desetinné číslo (matematika)
+die dreistellige Zahl (Math),trojmístné číslo (matematika)
+die vierstellige Zahl (Math),čtyřmístné číslo (matematika)
+die arabische Ziffern von 0 bis 3 (Math),arabské číslice od 0 do 3 (matematika)
+die römische Ziffern von I bis III (Math),římské číslice od I do III (matematika)
+die gerade Zahlen (Math),sudá čísla (matematika)
+die ungerade Zahlen (Math),lichá čísla (matematika)
+das Ergebnis (Math),výsledek (matematika)
+plus / und (Math),plus (matematika)
+addieren (Math),sčítat (matematika)
+zu/zählen zu (Math),přičítat (matematika)
+der Summand (Math),sčítanec (matematika)
+die Summe (Math),součet (matematika)
+die Addition (Math),sčítání (matematika)
+minus (Math),mínus (matematika)
+weniger (Math),méně (matematika)
+subtrahieren (Math),odčítat (matematika)
+ab/ziehen von (Math),odečítat od (matematika)
+der Minuend (Math),menšenec (matematika)
+der Subtrahend (Math),menšitel (matematika)
+die Differenz (Math),rozdíl (matematika)
+die Subtraktion (Math),odčítání (matematika)
+mal (Math),krát (matematika)
+multiplizieren mit (Math),násobit (matematika)
+mal/nehmen mit (Math),násobit s (matematika)
+der Faktor (Math),činitel (matematika)
+das Produkt (Math),součin (matematika)
+die Multiplikation (Math),násobení (matematika)
+dividieren durch / teilen durch (Math),dělit (matematika)
+der Dividend (Math),dělenec (matematika)
+der Divisor (Math),dělitel (matematika)
+der Quotient (Math),podíl (matematika)
+die Division (Math),dělení (matematika)
+,
+das Erz (Stoffe),ruda (materiál)
+der / das Graphit (Stoffe),grafit (materiál)
+das Holz (Stoffe),dřevo (materiál)
+das Metall (Stoffe),kov (materiál)
+das Leichtmetall (Stoffe),lehký kov (materiál)
+das Schwermetall (Stoffe),těžký kov (materiál)
+das Eisen (Stoffe),železo (materiál)
+der Gusseisenwerkstoff (Stoffe),litina (materiál)
+das Kupfer (Stoffe),měď (materiál)
+das Blei (Stoffe),olovo (materiál)
+das Gold (Stoffe),zlato (materiál)
+das Silber (Stoffe),stříbro (materiál)
+der Kohlenstoff (Stoffe),uhlík (materiál)
+der Stickstoff (Stoffe),dusík (materiál)
+der Wasserstoff (Stoffe),vodík (materiál)
+das Messing (Stoffe),mosaz (materiál)
+die Bronze (Stoffe),bronz (materiál)
+der Grünspan (Stoffe),měděnka (materiál)
+das Aluminium (Stoffe),hliník (materiál)
+der Stahl (Stoffe),ocel (materiál)
+die Legierung (Stoffe),slitina (materiál)
+die Aufbereitung (Stoffe),úprava (materiál)
+das Begleitelement (Stoffe),příměs (materiál)
+die Zusammensetzung (Stoffe),sloučenina (materiál)
+das Werkstück (Stoffe),obrobek (materiál)
+legiert (Stoffe),legovaný (materiál)
+unlegiert (Stoffe),nelegovaný (materiál)
+zäh (Stoffe),vazký / viskózní (materiál)
+flüssig (Stoffe),kapalný (materiál)
+gasförmig (Stoffe),plynný (materiál)
+dünn (Stoffe),tenký (materiál)
+weich (Stoffe),měkký (materiál)
+hart (Stoffe),tvrdý (materiál)
+starr (Stoffe),tuhý (materiál)
+dehnbar (Stoffe),tažný (materiál)
+bearbeiten (Stoffe),obrábět / opracovat (materiál)
+vermischen (Stoffe),smíchat (materiál)
+biegen (Stoffe),ohýbat (materiál)
+schmieden (Stoffe),kovat (materiál)
+gießen (Stoffe),slévat (materiál)
+um/formen (Stoffe),tvářet / tvarovat (materiál)
+ab/kühlen (Stoffe),ochladit (materiál)
+schmelzen (Stoffe),tavit (materiál)
+drehen (Stoffe),soustružit (materiál)
+meißeln (Stoffe),sekat / tesat (materiál)
+schleifen (Stoffe),brousit (materiál)
+putzen (Stoffe),čistit (materiál)
+schlichten (Stoffe),obrábět na čisto (materiál)
+auf/bereiten (Stoffe),upravit (materiál)
+strahlen (Stoffe),otryskávat (materiál)
+schneiden (Stoffe),stříhat nůžkami / řezat (materiál)
+schweißen (Stoffe),svařovat (materiál)
+walzen (Stoffe),válcovat (materiál)
+trennen (Stoffe),dělit (materiál)
+stanzen (Stoffe),razit (materiál)
+dehnen (Stoffe),tahnout (materiál)
+aus/walzen (Stoffe),vyválcovat (materiál)
+legieren (Stoffe),legovat (materiál)
+galvanisieren (Stoffe),galvanizovat (materiál)
+verzinken (Stoffe),pozinkovat (materiál)
+lackieren (Stoffe),lakovat (materiál)
+kleben (Stoffe),lepit (materiál)
+löten (Stoffe),pájet (materiál)
+sägen (Stoffe),řezat pilou (materiál)
+feilen (Stoffe),pilovat (materiál)
+fräsen (Stoffe),frézovat (materiál)
+bohren (Stoffe),vrtat (materiál)
+hobeln (Stoffe),hoblovat (materiál)
+nieten (Stoffe),nýtovat (materiál)
+verschrauben (Stoffe),sešroubovat (materiál)
+fügen (Stoffe),spojovat (materiál)
+ätzen (Stoffe),leptat (materiál)
+erstarren (Stoffe),ztuhnout (materiál)
+glühen (Stoffe),žíhat (materiál)
+,
+Tschechische Technische Universität / TTU,České vysoké učení technické / ČVUT
+Fakultät für Maschinenbau,Fakulta strojní
+Fakultät für Elektrotechnik,Fakulta elektrotechnická
+Fakultät für Architektur,Fakulta architektury
+Fakultät für Bauwesen,Fakulta stavební
+Fakultät für technische Physik und Kernphysik,Fakulta jaderná a fyzikálně inženýrská
+Fakultät für Transportwesen,Fakulta dopravní
+Fakultät für biomedizinische Technik,Fakulta biomedicínského inženýrství
+Institut für technische Mathematik,Ústav technické matematiky
+Institut für Physik,Ústav fyziky
+Institut für Sport,Ústav tělesné výchovy
+Institut für Sprachen,Ústav jazyků
+"Institut für Mechanik, Biomechanik und Mechatronik","Ústav mechaniky, biomechaniky a mechatroniky"
+Institut für Mechanik der Flüssigkeiten und Energetik,Ústav mechaniky tekutin a energetiky
+Institut für Produktionsmaschinen und mechanismen,Ústav výrobních strojů a mechanismů
+Institut für Sozialwissenschaften,Ústav společenských věd
+Institut für Apparat- und Steuerungstechnik,Ústav přístrojové a řídící techniky
+Institut für Umwelttechnik,Ústav techniky prostředí
+Institut für Prozess- und Verarbeitungstechnik,Ústav procesní a zpracovatelské techniky
+Institut für Flugzeugtechnik,Ústav letadlové techniky
+"Institut für Kraftfahrzeuge, Verbrennungsmotoren und Schienenfahrzeuge","Ústav automobilů, spalovacích motorů a kolejových vozidel"
+Institut für Maschinenbautechnologie,Ústav strojírenské technologie
+Institut für Werkstoffingenieurwesen,Ústav materiálového inženýrství
+Institut für Management und Betriebswirtschaft,Ústav řízení a ekonomiky podniku
+"Institut für Technologie der Bearbeitung, Projektieren und Metrologie","Ústav technologie obrábění, projektování a metrologie"
+,
+die Bohrmaschine (Werkzeug),vrtačka (nářadí)
+der Meißel (Werkzeug),sekáč / dláto (nářadí)
+die Drahtbürste (Werkzeug),drátěný kartáč (nářadí)
+der Schraubenzieher (Werkzeug),šroubovák (nářadí)
+der Schraubendreher (Werkzeug),šroubovák (nářadí)
+die Feile (Werkzeug),pilník (nářadí)
+der Hammer (Werkzeug),kladivo (nářadí)
+die Blechschere (Werkzeug),nůžky na plech (nářadí)
+die Kombizange (Werkzeug),kombinačky (nářadí)
+die Beißzange (Werkzeug),štípací kleště (nářadí)
+der Fuchsschwanz (Werkzeug),ocaska / ruční pila (nářadí)
+die Säge (Werkzeug),ruční pila (nářadí)
+der Hobel (Werkzeug),hoblík (nářadí)
+der Drehmomentschlüssel (Werkzeug),momentový klíč (nářadí)
+der Maulschlüssel (Werkzeug),plochý / stranový klíč (nářadí)
+der Imbusschlüssel (Werkzeug),imbusový klíč (nářadí)
+,`;
+
+        // Parse CSV
+        const cards = csvData.split('\n')
+            .map(line => line.trim().split(',').map(side => side.trim().replace(/^\"|\"$/g, '')))
+            .filter(pair => pair.length === 2 && pair[0] !== '' && pair[1] !== '');
+        console.log(cards)
+
+        // Get URL parameters
+        const params = new URLSearchParams(window.location.search);
+        let seed = parseInt(params.get('seed')) || Math.floor(Math.random() * 100000);
+        let index = parseInt(params.get('index')) || 0;
+
+        // Shuffle with seed
+        function seededShuffle(array, seed) {
+            let rng = (function (seed) {
+                return function () {
+                    seed = (seed * 9301 + 49297) % 233280;
+                    return seed / 233280;
+                };
+            })(seed);
+            return array.map((a) => ({ sort: rng(), value: a })).sort((a, b) => a.sort - b.sort).map((a) => a.value);
+        }
+
+        const shuffledCards = seededShuffle(cards, seed);
+
+        function updateCard() {
+            if (index >= shuffledCards.length) index = 0;
+            document.getElementById('front').textContent = shuffledCards[index][0];
+            document.getElementById('back').textContent = shuffledCards[index][1];
+            document.getElementById('back').style.display = 'none';
+            document.getElementById('counter').textContent = `Card ${index + 1} / ${shuffledCards.length}`;
+            updateURL();
+        }
+
+        function flipCard() {
+            document.getElementById('back').style.display = 'block';
+        }
+
+        function nextCard() {
+            index = (index + 1) % shuffledCards.length;
+            updateCard();
+        }
+
+        function updateURL() {
+            history.replaceState(null, '', `?seed=${seed}&index=${index}`);
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowRight') {
+                nextCard();
+            }
+        });
+
+        updateCard();
+    </script>
+</body>
+
+</html>
